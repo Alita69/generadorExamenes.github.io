@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login School</title>
+    <link rel="stylesheet" href="stylesLogin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.0/css/iziToast.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Afacad+Flux:wght@100..1000&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="wrapper">
+        <form id="loginForm" class="form">
+            <h1 class="tittle">LOGIN</h1>
+            <div class="inp">
+                <input type="text" id="username" class="input" placeholder="Usuario" required>
+                <img src="usuario.png" alt="Usuario" class="icon">
+            </div>
+            <div class="inp" style="position: relative;">
+                <input type="password" id="password" class="input" placeholder="Contraseña" oninput="toggleEyeIcon()" required minlength="6">
+                <img src="ojo-cerrado.png" alt="Mostrar contraseña" id="eye-icon" class="icon" onclick="togglePasswordVisibility()">
+            </div>
+
+            <div class="radio-container">
+                <label>
+                    <input type="radio" name="role" value="alumno" checked> Estudiante
+                </label>
+                <label>
+                    <input type="radio" name="role" value="maestro"> Maestro
+                </label>
+            </div>
+
+            <button type="submit" class="submit">Iniciar Sesión</button>
+            <p class="footer">¿No tienes cuenta? <a href="#" class="link" onclick="openModal()">Registrarse</a></p>
+        </form>
+
+        <div class="banner">
+            <div class="logo-container">
+                <img src="logotec.png" alt="Logo" class="logo">
+            </div>
+            <h1 class="wel_text">BIENVENIDO<br></h1>
+            <p class="para">Suerte con tus exámenes.!!</p>
+        </div>
+
+        <!-- Modal -->
+        <div id="modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <h2>Registrar nuevo usuario</h2>
+                <div class="inp">
+                    <input type="text" id="new-username" class="input" placeholder="Nuevo Usuario" required>
+                    <img src="usuario.png" alt="Usuario" class="icon">
+                </div>
+                <div class="inp" style="position: relative;">
+                    <input type="password" id="new-password" class="input" placeholder="Nueva Contraseña" required minlength="6" oninput="toggleNewEyeIcon()">
+                    <img src="ojo-cerrado.png" alt="Mostrar contraseña" id="new-eye-icon" class="icon" onclick="toggleNewPasswordVisibility()">
+                </div>
+                <div class="radio-container">
+                    <label>
+                        <input type="radio" name="new-role" value="alumno" required> Estudiante
+                    </label>
+                    <label>
+                        <input type="radio" name="new-role" value="maestro" required> Maestro
+                    </label>
+                </div>
+                <button type="submit" class="submit">Registrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCqJU8v-DahljJa8DA-eVrspr_RdzbNP-0",
+            authDomain: "generador-examenes-4cb3a.firebaseapp.com",
+            databaseURL: "https://generador-examenes-4cb3a-default-rtdb.firebaseio.com",
+            projectId: "generador-examenes-4cb3a",
+            storageBucket: "generador-examenes-4cb3a.appspot.com",
+            messagingSenderId: "858738566940",
+            appId: "1:858738566940:web:1047e879402f61e2023cd9"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // Registrar un nuevo usuario
+        document.querySelector("#modal .submit").addEventListener("click", async function (event) {
+            event.preventDefault();
+
+            const username = document.getElementById("new-username").value;
+            const password = document.getElementById("new-password").value;
+            const role = document.querySelector('input[name="new-role"]:checked').value;
+
+            if (password.length < 6) {
+                iziToast.error({
+                    title: 'Error',
+                    message: 'La contraseña debe tener al menos 6 caracteres.',
+                    position: 'topRight'
+                });
+                return;
+            }
+
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, username + "@example.com", password);
+                const user = userCredential.user;
+
+                await addDoc(collection(db, "usuarios"), {
+                    uid: user.uid,
+                    nombre_usuario: username,
+                    contrasena: password,
+                    rol: role
+                });
+
+                iziToast.success({
+                    title: 'Éxito',
+                    message: 'Usuario registrado exitosamente.',
+                    position: 'topRight'
+                });
+
+                closeModal();
+            } catch (error) {
+                iziToast.error({
+                    title: 'Error',
+                    message: `Error al registrar: ${error.message}`,
+                    position: 'topRight'
+                });
+            }
+        });
+
+        // Iniciar sesión
+        document.getElementById("loginForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+            const role = document.querySelector('input[name="role"]:checked').value;
+
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, username + "@example.com", password);
+                const user = userCredential.user;
+
+                const q = query(collection(db, "usuarios"), where("uid", "==", user.uid));
+                const querySnapshot = await getDocs(q);
+
+                let userFound = false;
+                querySnapshot.forEach((doc) => {
+                    const userData = doc.data();
+                    userFound = true;
+                    if (userData.rol === role) {
+                        // Almacenar información del usuario en localStorage
+                        localStorage.setItem("user", JSON.stringify({
+                            uid: user.uid,
+                            nombre_usuario: userData.nombre_usuario,
+                            rol: userData.rol
+                        }));
+
+                        if (userData.rol === "maestro") {
+                            window.location.href = "menuMaestro.html";
+                        } else if (userData.rol === "alumno") {
+                            window.location.href = "menuEstudiante.html";
+                        }
+                    } else {
+                        iziToast.error({
+                            title: 'Error',
+                            message: 'El rol no coincide con el registrado.',
+                            position: 'topRight'
+                        });
+                    }
+                });
+
+                if (!userFound) {
+                    iziToast.error({
+                        title: 'Error',
+                        message: 'Usuario no encontrado en la base de datos.',
+                        position: 'topRight'
+                    });
+                }
+            } catch (error) {
+                iziToast.error({
+                    title: 'Error',
+                    message: `Error al iniciar sesión: ${error.message}`,
+                    position: 'topRight'
+                });
+            }
+        });
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/izitoast/1.4.0/js/iziToast.min.js"></script>
+
+    <script>
+        function toggleEyeIcon() {
+            const passwordInput = document.getElementById('password');
+            const eyeIcon = document.getElementById('eye-icon');
+
+            if (passwordInput.value.length > 0) {
+                eyeIcon.src = 'ojo-abierto.png';
+            } else {
+                eyeIcon.src = 'ojo-cerrado.png';
+            }
+        }
+
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('password');
+            const eyeIcon = document.getElementById('eye-icon');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.src = 'ojo-abierto.png';
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.src = 'ojo-cerrado.png';
+            }
+        }
+
+        function toggleNewEyeIcon() {
+            const passwordInput = document.getElementById('new-password');
+            const eyeIcon = document.getElementById('new-eye-icon');
+
+            if (passwordInput.value.length > 0) {
+                eyeIcon.src = 'ojo-abierto.png';
+            } else {
+                eyeIcon.src = 'ojo-cerrado.png';
+            }
+        }
+
+        function toggleNewPasswordVisibility() {
+            const passwordInput = document.getElementById('new-password');
+            const eyeIcon = document.getElementById('new-eye-icon');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.src = 'ojo-abierto.png';
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.src = 'ojo-cerrado.png';
+            }
+        }
+
+        // Abrir y cerrar modal
+        function openModal() {
+            document.getElementById('modal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        document.getElementById("openModal").onclick = openModal;
+        window.onclick = function (event) {
+            if (event.target == document.getElementById('modal')) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>

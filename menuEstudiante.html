@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú de Estudiante</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #081b29;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: rgba(1, 25, 43, 0.9);
+            border: 3px solid #00ffff;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            padding: 20px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, #0ef, #c800ff);
+            border: none;
+        }
+        .btn-secondary {
+            background: linear-gradient(45deg, #f06, #ff8);
+            color: white;
+            border: none;
+        }
+        .class-item {
+            border: 1px solid #00ffff;
+            border-radius: 8px;
+            background-color: #1a2230;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .btn-success {
+            background-color: #28a745;
+            border: none;
+        }
+        .btn-success:hover {
+            background-color: #218838;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Clases Disponibles</h1>
+        <div id="clasesContainer" class="mt-4"></div>
+        <button class="btn btn-secondary w-100 mt-3" onclick="window.location.href='index.html'">Regresar</button>
+        <!-- Botón oculto para ver el porcentaje -->
+        <button id="verPorcentaje" style="display: none; margin-top: 15px;" onclick="mostrarModal()">Ver porcentaje de respuestas</button>
+    </div>
+
+    <!-- Modal -->
+    <div id="miModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5);">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; border-radius: 8px;">
+            <canvas id="grafica" width="200" height="200"></canvas>
+            <button onclick="cerrarModal()">Cerrar</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCqJU8v-DahljJa8DA-eVrspr_RdzbNP-0",
+            authDomain: "generador-examenes-4cb3a.firebaseapp.com",
+            projectId: "generador-examenes-4cb3a",
+            storageBucket: "generador-examenes-4cb3a.appspot.com",
+            messagingSenderId: "858738566940",
+            appId: "1:858738566940:web:1047e879402f61e2023cd9"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                const uid = user.uid;
+
+                async function cargarClases() {
+                    const clasesContainer = document.getElementById("clasesContainer");
+                    clasesContainer.innerHTML = "";
+
+                    const clasesSnapshot = await getDocs(collection(db, "clases"));
+                    clasesSnapshot.forEach((doc) => {
+                        const clase = doc.data();
+                        const claseDiv = document.createElement("div");
+                        claseDiv.classList.add("class-item");
+                        claseDiv.innerHTML = `
+                            <h3>${clase.nombre}</h3>
+                            <button class="btn btn-primary mt-2" onclick="verExamenes('${doc.id}')">Ver Exámenes</button>
+                            <div id="examenes-${doc.id}" class="mt-3" style="display: none;"></div>
+                        `;
+                        clasesContainer.appendChild(claseDiv);
+                    });
+                }
+
+                window.verExamenes = async function(claseId) {
+                    const examenesContainer = document.getElementById(`examenes-${claseId}`);
+                    examenesContainer.style.display = examenesContainer.style.display === 'block' ? 'none' : 'block';
+                    examenesContainer.innerHTML = "";
+
+                    const q = query(collection(db, "examenes"), where("claseId", "==", claseId));
+                    const examenesSnapshot = await getDocs(q);
+
+                    if (examenesSnapshot.empty) {
+                        examenesContainer.innerHTML = "<p>No hay exámenes disponibles para esta clase.</p>";
+                        return;
+                    }
+
+                    for (const doc of examenesSnapshot.docs) {
+                        const examen = doc.data();
+                        const respuestaQuery = query(collection(db, "respuestas"), where("idExamen", "==", doc.id), where("uid", "==", uid));
+                        const respuestaSnapshot = await getDocs(respuestaQuery);
+
+                        let intentosRestantes = examen.intentos;
+                        if (!respuestaSnapshot.empty) {
+                            const respuesta = respuestaSnapshot.docs[0].data();
+                            intentosRestantes = examen.intentos - respuesta.intento;
+                        }
+
+                        const examenItem = document.createElement("div");
+                        examenItem.innerHTML = `
+                            <p>${examen.nombre} - Disponible hasta: ${examen.fechaCierre}</p>
+                            <button class="btn ${intentosRestantes > 0 ? 'btn-success' : 'btn-danger'}"
+                                    onclick="${intentosRestantes > 0 ? `contestarExamen('${doc.id}', '${uid}')` : 'alert(\'Se ha superado el número de intentos para este examen.\')'}">
+                                ${intentosRestantes > 0 ? `Contestar (Intentos restantes: ${intentosRestantes})` : 'Intentos agotados'}
+                            </button>
+                        `;
+                        examenesContainer.appendChild(examenItem);
+                    }
+                };
+
+                window.contestarExamen = function(examenId, uid) {
+                    window.location.href = `estudiante.html?examenId=${examenId}&uid=${uid}`;
+                };
+
+                cargarClases();
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
+
+        // Variables y funciones para manejar los intentos y mostrar el botón al agotarse
+        let intentos = 3;
+        let respuestasCorrectas = 0;
+        let respuestasIncorrectas = 0;
+
+        function actualizarIntentos() {
+            intentos--;
+            // Verificar si los intentos se han agotado
+            if (intentos <= 0) {
+                mostrarBotonVerPorcentaje();
+            }
+        }
+
+        function mostrarBotonVerPorcentaje() {
+            document.getElementById('verPorcentaje').style.display = 'block';
+        }
+
+        function mostrarModal() {
+            const totalRespuestas = respuestasCorrectas + respuestasIncorrectas;
+            const porcentajeCorrectas = (respuestasCorrectas / totalRespuestas) * 100;
+            const porcentajeIncorrectas = (respuestasIncorrectas / totalRespuestas) * 100;
+
+            document.getElementById('miModal').style.display = 'block';
+
+            const ctx = document.getElementById('grafica').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Correctas', 'Incorrectas'],
+                    datasets: [{
+                        data: [porcentajeCorrectas, porcentajeIncorrectas],
+                        backgroundColor: ['#4CAF50', '#F44336']
+                    }]
+                }
+            });
+        }
+
+        function cerrarModal() {
+            document.getElementById('miModal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

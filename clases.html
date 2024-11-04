@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clases Disponibles</title>
+    <style>
+        /* Estilos generales */
+        * { 
+            margin: 0;
+            padding: 0;
+            font-family: 'Rubik', segoe ui;
+            color: gray;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            background: #081b29;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 8, 41, 0.7);
+            z-index: 1;
+        }
+
+        .container {
+            position: relative;
+            z-index: 2;
+            display: grid;
+            gap: 20px;
+            width: 500px;
+            padding: 40px;
+            background-color: rgba(1, 25, 43, 0.9);
+            border: 3px solid #00ffff;
+            border-radius: 10px;
+            box-shadow: 0 0 30px 0 #00a6bc;
+            text-align: center;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+
+        .menu-button {
+            padding: 15px;
+            font-size: 18px;
+            color: white;
+            background: linear-gradient(45deg, #0ef, #c800ff);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .menu-button:hover {
+            box-shadow: 0 0 10px 0 #00a6bc;
+            transform: scale(1.05);
+        }
+
+        .back-button {
+            background: linear-gradient(45deg, #f06, #ff8);
+        }
+
+        .clase-item {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #00ffff;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            color: white;
+            text-align: left;
+            position: relative;
+        }
+
+        .clase-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        /* Modal Styling */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 3;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #081b29;
+            width: 400px;
+            padding: 30px 20px;
+            border-radius: 10px;
+            border: 3px solid #00ffff;
+            box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.2);
+            color: white;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+        }
+
+        .modal-content input {
+            width: 90%;
+            padding: 12px;
+            margin-bottom: 15px;
+            font-size: 16px;
+            color: #0ef;
+            background-color: #1b2b3b;
+            border: 2px solid #00ffff;
+            border-radius: 5px;
+            outline: none;
+            text-align: center;
+        }
+
+        .modal-content button {
+            margin-top: 20px;
+            padding: 10px;
+            width: 90%;
+            font-size: 18px;
+            background: linear-gradient(45deg, #0ef, #c800ff);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            color: white;
+        }
+
+        .modal-content button:hover {
+            box-shadow: 0 0 10px 0 #00a6bc;
+            transform: scale(1.05);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+        }
+
+        .close:hover {
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="title">Clases Disponibles</div>
+        <div class="button-container">
+            <button class="menu-button" onclick="abrirModalCrearClase()">Crear Nueva Clase</button>
+            <button class="menu-button back-button" onclick="window.location.href='menuMaestro.html'">Regresar al Menú</button>
+        </div>
+        <div id="clasesContainer"></div>
+    </div>
+
+    <!-- Modal para crear una nueva clase -->
+    <div id="modalCrearClase" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModalCrearClase()">&times;</span>
+            <h2>Crear Nueva Clase</h2>
+            <input type="text" id="nombreClase" placeholder="Nombre de la clase" required>
+            <input type="text" id="codigoClase" placeholder="Código de la clase" required>
+            <button onclick="crearClase()">Crear Clase</button>
+        </div>
+    </div>
+
+    <!-- Modal para crear un nuevo examen con configuración -->
+    <div id="modalCrearExamen" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModalCrearExamen()">&times;</span>
+            <h2>Crear Nuevo Examen</h2>
+            <input type="text" id="nombreExamen" placeholder="Nombre del examen" required>
+            <input type="datetime-local" id="fechaApertura" placeholder="Fecha de Apertura" required>
+            <input type="datetime-local" id="fechaCierre" placeholder="Fecha de Cierre" required>
+            <input type="number" id="duracion" placeholder="Duración (minutos)" required>
+            <input type="number" id="intentos" placeholder="Número de Intentos" required>
+            <button onclick="crearExamen()">Crear Examen</button>
+        </div>
+    </div>
+
+    <!-- Modal para mostrar exámenes de una clase -->
+    <div id="modalVerExamenes" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModalVerExamenes()">&times;</span>
+            <h2>Exámenes de la Clase</h2>
+            <ul id="listaExamenes"></ul>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCqJU8v-DahljJa8DA-eVrspr_RdzbNP-0",
+            authDomain: "generador-examenes-4cb3a.firebaseapp.com",
+            databaseURL: "https://generador-examenes-4cb3a-default-rtdb.firebaseio.com",
+            projectId: "generador-examenes-4cb3a",
+            storageBucket: "generador-examenes-4cb3a.appspot.com",
+            messagingSenderId: "858738566940",
+            appId: "1:858738566940:web:1047e879402f61e2023cd9"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let currentClaseId = null;
+
+        window.abrirModalCrearClase = function() {
+            document.getElementById("modalCrearClase").style.display = "flex";
+        }
+
+        window.cerrarModalCrearClase = function() {
+            document.getElementById("modalCrearClase").style.display = "none";
+        }
+
+        window.abrirModalCrearExamen = function(claseId) {
+            currentClaseId = claseId;
+            document.getElementById("modalCrearExamen").style.display = "flex";
+        }
+
+        window.cerrarModalCrearExamen = function() {
+            document.getElementById("modalCrearExamen").style.display = "none";
+        }
+
+        window.abrirModalVerExamenes = async function(claseId) {
+            currentClaseId = claseId;
+            const listaExamenes = document.getElementById("listaExamenes");
+            listaExamenes.innerHTML = "";
+
+            const q = query(collection(db, "examenes"), where("claseId", "==", claseId));
+            const querySnapshot = await getDocs(q);
+
+            querySnapshot.forEach((doc) => {
+                const examen = doc.data();
+                const li = document.createElement("li");
+                li.textContent = `${examen.nombre}`;
+                li.onclick = () => window.location.href = `preliminar.html?examenId=${doc.id}`;
+                listaExamenes.appendChild(li);
+            });
+
+            document.getElementById("modalVerExamenes").style.display = "flex";
+        }
+
+        window.cerrarModalVerExamenes = function() {
+            document.getElementById("modalVerExamenes").style.display = "none";
+        }
+
+        window.crearClase = async function() {
+            const nombreClase = document.getElementById("nombreClase").value;
+            const codigoClase = document.getElementById("codigoClase").value;
+
+            if (!nombreClase || !codigoClase) {
+                alert("Por favor, completa todos los campos.");
+                return;
+            }
+
+            try {
+                await addDoc(collection(db, "clases"), { nombre: nombreClase, codigo: codigoClase });
+                alert("Clase creada con éxito.");
+                cerrarModalCrearClase();
+                cargarClases();
+            } catch (error) {
+                console.error("Error al crear clase:", error);
+                alert("Error al crear clase.");
+            }
+        }
+
+        window.crearExamen = async function() {
+            const nombreExamen = document.getElementById("nombreExamen").value;
+            const fechaApertura = document.getElementById("fechaApertura").value;
+            const fechaCierre = document.getElementById("fechaCierre").value;
+            const duracion = parseInt(document.getElementById("duracion").value, 10);
+            const intentos = parseInt(document.getElementById("intentos").value, 10);
+
+            if (!nombreExamen || !fechaApertura || !fechaCierre || !duracion || !intentos || !currentClaseId) {
+                alert("Por favor, completa todos los campos.");
+                return;
+            }
+
+            try {
+                const docRef = await addDoc(collection(db, "examenes"), {
+                    nombre: nombreExamen,
+                    fechaApertura,
+                    fechaCierre,
+                    duracion,
+                    intentos,
+                    claseId: currentClaseId
+                });
+                alert("Examen creado con éxito.");
+                cerrarModalCrearExamen();
+                window.location.href = `admin.html?examenId=${docRef.id}`;
+            } catch (error) {
+                console.error("Error al crear examen:", error);
+                alert("Error al crear examen.");
+            }
+        }
+
+        async function cargarClases() {
+            const clasesContainer = document.getElementById("clasesContainer");
+            clasesContainer.innerHTML = "";
+
+            const querySnapshot = await getDocs(collection(db, "clases"));
+            querySnapshot.forEach((doc) => {
+                const clase = doc.data();
+                const claseElement = document.createElement("div");
+                claseElement.classList.add("clase-item");
+                claseElement.innerHTML = `
+                    <h3>${clase.nombre}</h3>
+                    <p><strong>Código:</strong> ${clase.codigo}</p>
+                    <div class="clase-buttons">
+                        <button class="menu-button" onclick="abrirModalCrearExamen('${doc.id}')">Crear Examen</button>
+                        <button class="menu-button" onclick="abrirModalVerExamenes('${doc.id}')">Ver Exámenes</button>
+                        <button class="menu-button back-button" onclick="eliminarClase('${doc.id}')">Eliminar Clase</button>
+                    </div>
+                `;
+                clasesContainer.appendChild(claseElement);
+            });
+        }
+
+        async function eliminarClase(claseId) {
+            if (confirm("¿Estás seguro de que deseas eliminar esta clase?")) {
+                await deleteDoc(doc(db, "clases", claseId));
+                cargarClases();
+            }
+        }
+
+        cargarClases();
+    </script>
+
+</body>
+</html>

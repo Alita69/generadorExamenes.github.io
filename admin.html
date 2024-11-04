@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Exámenes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        /* Diseño Oscuro con Estilo Neón */
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #1a1a2e;
+            color: white;
+            margin: 0;
+            overflow-y: auto;
+        }
+
+        .container {
+            max-width: 600px;
+            background-color: #16213e;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            border: 1px solid #00ffff;
+            overflow-y: auto;
+            max-height: 90vh;
+        }
+
+        .btn-primary,
+        .btn-secondary {
+            background: linear-gradient(45deg, #00f2fe, #4facfe);
+            border: none;
+        }
+
+        .btn-back {
+            background-color: #ff8a80;
+            color: white;
+        }
+
+        .form-label {
+            color: #00ffff;
+        }
+
+        table {
+            background-color: #0f3460;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="d-flex justify-content-between mb-3">
+            <button class="btn btn-back" onclick="window.history.back()">Regresar</button>
+            <button class="btn btn-secondary" id="btnVisualizar">Visualizar</button>
+        </div>
+        
+        <h1 class="text-center">Generador de Exámenes</h1>
+
+        <!-- Formulario para Preguntas -->
+        <form id="questionForm" class="mt-4">
+            <div class="mb-3">
+                <label for="pregunta" class="form-label">Pregunta:</label>
+                <input type="text" class="form-control" id="pregunta" required>
+            </div>
+
+            <div id="respuestasContainer">
+                <div class="mb-3">
+                    <label class="form-label">Respuesta A:</label>
+                    <input type="text" class="form-control respuesta" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Respuesta B:</label>
+                    <input type="text" class="form-control respuesta" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Respuesta C:</label>
+                    <input type="text" class="form-control respuesta" required>
+                </div>
+            </div>
+            <button type="button" class="btn btn-secondary w-100 mb-3" onclick="agregarRespuesta()">Agregar Otra Respuesta</button>
+
+            <div class="mb-3">
+                <label for="correcta" class="form-label">Solución (A, B, C, etc.):</label>
+                <input type="text" class="form-control" id="correcta" required maxlength="1" pattern="[A-Z]">
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Guardar Pregunta</button>
+        </form>
+
+        <!-- Tabla de Preguntas -->
+        <div class="table-container">
+            <table class="table table-bordered table-striped mt-4">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Pregunta</th>
+                        <th>Respuestas</th>
+                        <th>Solución</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaPreguntas"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCqJU8v-DahljJa8DA-eVrspr_RdzbNP-0",
+            authDomain: "generador-examenes-4cb3a.firebaseapp.com",
+            databaseURL: "https://generador-examenes-4cb3a-default-rtdb.firebaseio.com",
+            projectId: "generador-examenes-4cb3a",
+            storageBucket: "generador-examenes-4cb3a.appspot.com",
+            messagingSenderId: "858738566940",
+            appId: "1:858738566940:web:1047e879402f61e2023cd9"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Obtener el examenId de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const examenId = urlParams.get("examenId");
+
+        if (!examenId) {
+            alert("Error: No se proporcionó un ID de examen.");
+            window.location.href = "menu.html"; // Redirigir si no hay examenId
+        }
+
+        // Cargar preguntas específicas del examen actual
+        async function cargarPreguntas() {
+            const tablaPreguntas = document.getElementById("tablaPreguntas");
+            tablaPreguntas.innerHTML = ""; // Limpiar la tabla
+
+            const q = query(collection(db, "preguntas"), where("examenId", "==", examenId));
+            const querySnapshot = await getDocs(q);
+
+            querySnapshot.forEach((doc, index) => {
+                const preguntaData = doc.data();
+                mostrarPreguntaEnTabla(index + 1, preguntaData.pregunta, preguntaData.respuestas, preguntaData.correcta);
+            });
+        }
+
+        // Función para agregar campo de respuesta adicional
+        function agregarRespuesta() {
+            const respuestasContainer = document.getElementById("respuestasContainer");
+            const respuestaCount = respuestasContainer.children.length + 1;
+            const newRespuesta = document.createElement("div");
+            newRespuesta.classList.add("mb-3");
+            newRespuesta.innerHTML = `
+                <label class="form-label">Respuesta ${String.fromCharCode(64 + respuestaCount)}:</label>
+                <input type="text" class="form-control respuesta" required>
+            `;
+            respuestasContainer.appendChild(newRespuesta);
+        }
+
+        // Guardar cada pregunta en Firebase con el ID del examen actual
+        document.getElementById("questionForm").addEventListener("submit", async function(event) {
+            event.preventDefault();
+            const pregunta = document.getElementById("pregunta").value;
+            const correcta = document.getElementById("correcta").value.toUpperCase();
+            const respuestas = Array.from(document.querySelectorAll(".respuesta")).map(input => input.value);
+
+            const preguntaData = {
+                examenId, // Relaciona la pregunta con el examen actual
+                pregunta,
+                respuestas,
+                correcta
+            };
+
+            await addDoc(collection(db, "preguntas"), preguntaData);
+            alert("Pregunta guardada con éxito.");
+
+            // Mostrar en la tabla y limpiar el formulario
+            mostrarPreguntaEnTabla(document.getElementById("tablaPreguntas").rows.length + 1, pregunta, respuestas, correcta);
+            document.getElementById("questionForm").reset();
+        });
+
+        // Función para mostrar preguntas en la tabla
+        function mostrarPreguntaEnTabla(index, pregunta, respuestas, correcta) {
+            const tabla = document.getElementById("tablaPreguntas");
+            const nuevaFila = tabla.insertRow();
+            nuevaFila.insertCell(0).innerText = index;
+            nuevaFila.insertCell(1).innerText = pregunta;
+            nuevaFila.insertCell(2).innerText = respuestas.join(", ");
+            nuevaFila.insertCell(3).innerText = correcta;
+        }
+
+        // Función para redirigir a preliminar.html con el examenId actual
+        function visualizarExamen() {
+            if (examenId) {
+                window.location.href = `preliminar.html?examenId=${examenId}`;
+            } else {
+                console.error("examenId no está definido");
+            }
+        }
+
+        // Asigna el evento al botón de visualizar
+        document.getElementById("btnVisualizar").addEventListener("click", visualizarExamen);
+
+        // Cargar preguntas al iniciar
+        cargarPreguntas();
+    </script>
+</body>
+</html>
