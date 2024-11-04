@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Examen para el Estudiante</title>
-    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
             font-family: 'Rubik', sans-serif;
@@ -12,59 +12,122 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #1a2b38; /* Azul oscuro */
-            color: #cfd8dc; /* Gris claro */
+            background-color: #1a2b38;
+            color: #cfd8dc;
             padding: 20px;
             margin: 0;
         }
+
         .container {
             max-width: 600px;
-            background-color: #22303c; /* Azul muy oscuro */
-            padding: 20px;
+            background-color: #22303c;
+            padding: 30px;
             border-radius: 15px;
-            box-shadow: 0 6px 30px rgba(77, 208, 225, 0.5); /* Sombra cian */
-            border: 1px solid #4fc3f7; /* Azul claro */
+            box-shadow: 0 6px 30px rgba(77, 208, 225, 0.5);
+            border: 3px solid #4fc3f7;
         }
-        h1 {
-            color: #4fc3f7; /* Azul claro */
+
+        .container h1 {
+            font-size: 28px;
+            color: #80cbc4;
+            margin-bottom: 20px;
+            text-align: center;
         }
+
         .form-label {
-            color: #cfd8dc; /* Gris claro */
+            color: #80cbc4;
         }
-        .btn-primary, .btn-secondary {
-            border: none;
-            border-radius: 8px;
-            padding: 10px 20px;
-            font-weight: 500;
-            margin-top: 5px;
-            color: #cfd8dc; /* Gris claro */
-            transition: background-color 0.2s;
+
+        .form-control {
+            background-color: #22303c;
+            border: 2px solid #4fc3f7;
+            color: #cfd8dc;
+            padding: 10px;
+            border-radius: 5px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: #0288d1;
+            box-shadow: 0 0 5px rgba(77, 208, 225, 0.5);
+        }
+
+        input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        label {
+            margin-bottom: 5px;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px;
             width: 100%;
+            font-size: 18px;
+            background: linear-gradient(45deg, #4fc3f7, #0288d1);
+            border: none;
+            border-radius: 10px;
+            color: #cfd8dc;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
         }
-        .btn-primary {
-            background-color: #4fc3f7; /* Azul claro */
+
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 10px #4dd0e1;
         }
-        .btn-primary:hover {
-            background-color: #0288d1; /* Azul más intenso */
-        }
-        .btn-secondary {
-            background-color: #d32f2f; /* Rojo intenso */
-        }
-        .btn-secondary:hover {
-            background-color: #b71c1c; /* Rojo más oscuro */
-        }
+
         .resultado {
             margin-top: 20px;
-            background-color: #263238; /* Azul verdoso oscuro */
-            padding: 15px;
+            background-color: #16213e;
+            border: 2px solid #4fc3f7;
             border-radius: 10px;
-            border: 1px solid #4fc3f7; /* Azul claro */
+            padding: 15px;
+            color: #cfd8dc;
+            display: none;
         }
-        .text-success {
-            color: #66bb6a; /* Verde claro */
+
+        .resultado h3 {
+            color: #80cbc4;
         }
-        .text-danger {
-            color: #ef5350; /* Rojo claro */
+
+        #timer {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff5252;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        /* Estilos para la ventana modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #22303c;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            border: 3px solid #4fc3f7;
+        }
+
+        .modal-content h3 {
+            color: #ff5252;
+            margin-bottom: 15px;
         }
     </style>
 </head>
@@ -72,7 +135,7 @@
 <body>
     <div class="container">
         <h1 class="text-center">Examen para el Estudiante</h1>
-        
+        <div id="timer">Tiempo restante: 00:00</div>
         <div class="mb-3">
             <label for="nombreUsuario" class="form-label">Ingresa tu nombre:</label>
             <input type="text" id="nombreUsuario" class="form-control" placeholder="Nombre completo" required>
@@ -80,19 +143,26 @@
 
         <div id="preguntasContainer"></div>
         
-        <button id="btnEnviar" class="btn btn-primary mt-3">Enviar Respuestas</button>
-        <button id="btnRegresar" class="btn btn-secondary mt-3" onclick="window.location.href='menuEstudiante.html'">Regresar al Menú</button>
+        <button id="btnEnviar" class="btn btn-primary w-100 mt-3">Enviar Respuestas</button>
 
-        <div class="resultado mt-3" id="resultadoContainer" style="display: none;">
-            <h3 class="text-center">Resultados</h3>
-            <p id="correctasTexto" class="text-success"></p>
-            <p id="incorrectasTexto" class="text-danger"></p>
+        <div class="resultado mt-3">
+            <h3 id="resultadoTexto" class="text-center"></h3>
+        </div>
+    </div>
+
+    <!-- Modal para ingresar el nombre -->
+    <div id="nombreModal" class="modal">
+        <div class="modal-content">
+            <h3>El tiempo ha terminado</h3>
+            <p>Ingresa tu nombre para enviar las respuestas:</p>
+            <input type="text" id="modalNombreUsuario" class="form-control mb-3" placeholder="Nombre completo" required>
+            <button id="btnModalEnviar" class="btn btn-primary w-100">Enviar Respuestas</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-        import { getFirestore, collection, getDocs, addDoc, query, where, setDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, addDoc, query, where, setDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
         import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
         const firebaseConfig = {
@@ -111,36 +181,43 @@
         const urlParams = new URLSearchParams(window.location.search);
         const examenId = urlParams.get("examenId");
         const uid = urlParams.get("uid");
-        let intentosRestantes = 0;
+        let tiempoRestante; // Variable global para el temporizador
 
         async function cargarPreguntas() {
-            const preguntasSnapshot = await getDocs(query(collection(db, "preguntas"), where("examenId", "==", examenId)));
-            const preguntasContainer = document.getElementById("preguntasContainer");
+            try {
+                const preguntasSnapshot = await getDocs(query(collection(db, "preguntas"), where("examenId", "==", examenId)));
+                const preguntasContainer = document.getElementById("preguntasContainer");
 
-            preguntasSnapshot.forEach((doc) => {
-                const data = doc.data();
-                const preguntaHTML = `
-                    <div class="mb-4">
-                        <h5>${data.pregunta}</h5>
-                        ${data.respuestas.map((respuesta, index) => `
-                        <div>
-                            <input type="radio" name="${doc.id}" value="${String.fromCharCode(65 + index)}" id="${doc.id}${index}" data-correcta="${data.correcta}" required>
-                            <label for="${doc.id}${index}">${respuesta}</label>
+                if (preguntasSnapshot.empty) {
+                    preguntasContainer.innerHTML = "<p>No hay preguntas disponibles para este examen.</p>";
+                    return;
+                }
+
+                preguntasSnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const preguntaHTML = `
+                        <div class="mb-4">
+                            <h5>${data.pregunta}</h5>
+                            ${data.respuestas.map((respuesta, index) => `
+                            <div>
+                                <input type="radio" name="${doc.id}" value="${String.fromCharCode(65 + index)}" id="${doc.id}${index}" data-correcta="${data.correcta}" required>
+                                <label for="${doc.id}${index}">${respuesta}</label>
+                            </div>
+                        `).join('')}
                         </div>
-                    `).join('')}
-                    </div>
-                `;
-                preguntasContainer.innerHTML += preguntaHTML;
-            });
+                    `;
+                    preguntasContainer.innerHTML += preguntaHTML;
+                });
+            } catch (error) {
+                console.error("Error al cargar preguntas:", error);
+            }
         }
 
-        document.getElementById("btnEnviar").addEventListener("click", async function () {
-            if (intentosRestantes <= 0) {
-                alert("Ya no tienes intentos restantes. No puedes enviar tus respuestas.");
-                return;
-            }
+        document.getElementById("btnEnviar").addEventListener("click", enviarRespuestas);
+        document.getElementById("btnModalEnviar").addEventListener("click", enviarRespuestas);
 
-            const nombreUsuario = document.getElementById("nombreUsuario").value.trim();
+        async function enviarRespuestas() {
+            const nombreUsuario = document.getElementById("nombreUsuario").value.trim() || document.getElementById("modalNombreUsuario").value.trim();
 
             if (!nombreUsuario) {
                 alert("Por favor, ingresa tu nombre para continuar.");
@@ -149,7 +226,6 @@
 
             const preguntas = document.getElementById("preguntasContainer").children;
             let correctas = 0;
-            let incorrectas = 0;
 
             Array.from(preguntas).forEach((pregunta) => {
                 const nombre = pregunta.querySelector('input[type="radio"]').name;
@@ -161,15 +237,9 @@
 
                     if (respuestaSeleccionada === correcta) {
                         correctas++;
-                    } else {
-                        incorrectas++;
                     }
                 }
             });
-
-            document.getElementById("resultadoContainer").style.display = "block";
-            document.getElementById("correctasTexto").textContent = `Respuestas correctas: ${correctas}`;
-            document.getElementById("incorrectasTexto").textContent = `Respuestas incorrectas: ${incorrectas}`;
 
             const fechaHecho = new Date().toLocaleString();
 
@@ -179,28 +249,20 @@
 
                 if (!intentosSnapshot.empty) {
                     const intentoDoc = intentosSnapshot.docs[0];
-                    intentosRestantes = intentoDoc.data().intento + 1 >= 3 ? 0 : 3 - (intentoDoc.data().intento + 1);
                     await setDoc(doc(db, "respuestas", intentoDoc.id), {
-                        ...intentoDoc.data(),
+                        nombre: nombreUsuario,
+                        idExamen: examenId,
                         numAciertos: correctas,
-                        numErrores: incorrectas,
                         fechaHecho: fechaHecho,
+                        uid: uid,
                         intento: intentoDoc.data().intento + 1
                     });
-
-                    if (intentosRestantes <= 0) {
-                        document.getElementById("btnEnviar").disabled = true;
-                        alert("Has alcanzado el máximo de intentos permitidos.");
-                    } else {
-                        alert(`Intento actualizado exitosamente. Este es el intento número: ${intentoDoc.data().intento + 1}`);
-                    }
+                    alert(`Intento actualizado exitosamente. Este es el intento número: ${intentoDoc.data().intento + 1}`);
                 } else {
-                    intentosRestantes = 2; // Primer intento realizado, quedan 2
                     await addDoc(collection(db, "respuestas"), {
                         nombre: nombreUsuario,
                         idExamen: examenId,
                         numAciertos: correctas,
-                        numErrores: incorrectas,
                         fechaHecho: fechaHecho,
                         uid: uid,
                         intento: 1
@@ -208,33 +270,110 @@
                     alert("Respuestas guardadas exitosamente. Este es tu primer intento.");
                 }
 
-                if (intentosRestantes <= 0) {
-                    document.getElementById("btnEnviar").disabled = true;
-                }
+                localStorage.removeItem(`inicio_${uid}_${examenId}`);
+                window.location.href = "menuEstudiante.html";
             } catch (error) {
                 console.error("Error al guardar o actualizar respuestas:", error);
                 alert("Hubo un error al guardar las respuestas.");
             }
-        });
+        }
 
-        async function verificarIntentos() {
-            const intentosQuery = query(collection(db, "respuestas"), where("uid", "==", uid), where("idExamen", "==", examenId));
-            const intentosSnapshot = await getDocs(intentosQuery);
+        async function iniciarTemporizador() {
+            try {
+                const examenDoc = await getDoc(doc(db, "examenes", examenId));
+                if (examenDoc.exists()) {
+                    const duracion = examenDoc.data().duracion * 60; // Convertir duración a segundos
+                    const intentosQuery = query(collection(db, "respuestas"), where("uid", "==", uid), where("idExamen", "==", examenId));
+                    const intentosSnapshot = await getDocs(intentosQuery);
+                    const numIntentos = intentosSnapshot.empty ? 1 : intentosSnapshot.docs[0].data().intento + 1;
 
-            if (!intentosSnapshot.empty) {
-                const intentoDoc = intentosSnapshot.docs[0];
-                intentosRestantes = 3 - intentoDoc.data().intento;
-                if (intentosRestantes <= 0) {
-                    document.getElementById("btnEnviar").disabled = true;
-                    alert("Ya no tienes intentos restantes.");
+                    if (numIntentos > 1) {
+                        localStorage.removeItem(`inicio_${uid}_${examenId}`);
+                        tiempoRestante = duracion;
+                    } else {
+                        const tiempoInicio = localStorage.getItem(`inicio_${uid}_${examenId}`);
+                        const tiempoActual = Date.now();
+
+                        if (tiempoInicio) {
+                            tiempoRestante = duracion - Math.floor((tiempoActual - parseInt(tiempoInicio)) / 1000);
+                        } else {
+                            localStorage.setItem(`inicio_${uid}_${examenId}`, tiempoActual);
+                            tiempoRestante = duracion;
+                        }
+                    }
+
+                    const timerElement = document.getElementById("timer");
+                    const intervalo = setInterval(() => {
+                        const minutos = Math.floor(tiempoRestante / 60);
+                        const segundos = tiempoRestante % 60;
+                        timerElement.textContent = `Tiempo restante: ${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
+
+                        if (tiempoRestante <= 0) {
+                            clearInterval(intervalo);
+                            document.getElementById("nombreModal").style.display = "flex";
+                        }
+                        tiempoRestante--;
+                    }, 1000);
+                } else {
+                    console.error("No se encontró el documento del examen.");
                 }
-            } else {
-                intentosRestantes = 3; // Primer intento posible
+            } catch (error) {
+                console.error("Error al iniciar el temporizador:", error);
             }
         }
 
+        async function cargarProgreso() {
+            try {
+                const progresoDoc = await getDoc(doc(db, "progresoExamenes", `${uid}_${examenId}`));
+                if (progresoDoc.exists()) {
+                    const progresoData = progresoDoc.data();
+                    document.getElementById("nombreUsuario").value = progresoData.nombre;
+
+                    progresoData.respuestasParciales.forEach((respuesta) => {
+                        const inputSeleccionado = document.querySelector(`input[name="${respuesta.preguntaId}"][value="${respuesta.respuestaSeleccionada}"]`);
+                        if (inputSeleccionado) {
+                            inputSeleccionado.checked = true;
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error("Error al cargar progreso:", error);
+            }
+        }
+
+        function guardarProgreso() {
+            const nombreUsuario = document.getElementById("nombreUsuario").value.trim();
+            if (!nombreUsuario) {
+                return;
+            }
+
+            const preguntas = document.getElementById("preguntasContainer").children;
+            let respuestasParciales = [];
+
+            Array.from(preguntas).forEach((pregunta) => {
+                const nombre = pregunta.querySelector('input[type="radio"]').name;
+                const seleccionada = pregunta.querySelector(`input[name="${nombre}"]:checked`);
+                if (seleccionada) {
+                    respuestasParciales.push({
+                        preguntaId: nombre,
+                        respuestaSeleccionada: seleccionada.value
+                    });
+                }
+            });
+
+            setDoc(doc(db, "progresoExamenes", `${uid}_${examenId}`), {
+                nombre: nombreUsuario,
+                idExamen: examenId,
+                uid: uid,
+                respuestasParciales: respuestasParciales,
+                fechaGuardado: new Date().toLocaleString()
+            });
+        }
+
+        setInterval(guardarProgreso, 30000); // Guardar progreso cada 30 segundos
         cargarPreguntas();
-        verificarIntentos();
+        cargarProgreso();
+        iniciarTemporizador();
     </script>
 </body>
 </html>
