@@ -120,6 +120,10 @@
     .modal-content button:hover {
       background-color: #0288d1; /* Azul más intenso */
     }
+
+    .modal-content canvas {
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
@@ -173,8 +177,8 @@
   <div id="modalEstadisticas" class="modal">
     <div class="modal-content">
       <span class="close" onclick="cerrarModal('modalEstadisticas')">&times;</span>
-      <h2>Estadísticas del Examen</h2>
-      <canvas id="graficaEstadisticas"></canvas>
+      <h2>Estadísticas de Preguntas</h2>
+      <div id="graficaContainer"></div>
     </div>
   </div>
 
@@ -197,50 +201,42 @@
 
     async function cargarExamenes() {
       const listaExamenes = document.getElementById("listaExamenes");
-      if (listaExamenes) {
-        listaExamenes.innerHTML = "";
+      listaExamenes.innerHTML = "";
 
-        try {
-          const examenesSnapshot = await getDocs(collection(db, "examenes"));
-          examenesSnapshot.forEach((doc) => {
-            const examen = doc.data();
-            const li = document.createElement("li");
-            li.innerHTML = `
-              ${examen.nombre} - Fecha Apertura: ${examen.fechaApertura}
-              <button class="menu-button" onclick="verEstadisticas('${doc.id}')">Ver Estadísticas</button>
-              <button class="menu-button" onclick="abrirModalEditarExamen('${doc.id}')">Editar Examen</button>
-            `;
-            listaExamenes.appendChild(li);
-          });
+      try {
+        const examenesSnapshot = await getDocs(collection(db, "examenes"));
+        examenesSnapshot.forEach((doc) => {
+          const examen = doc.data();
+          const li = document.createElement("li");
+          li.innerHTML = `
+            ${examen.nombre} - Fecha Apertura: ${examen.fechaApertura}
+            <button class="menu-button" onclick="verEstadisticas('${doc.id}')">Ver Estadísticas</button>
+            <button class="menu-button" onclick="abrirModalEditarExamen('${doc.id}')">Editar Examen</button>
+          `;
+          listaExamenes.appendChild(li);
+        });
 
-          document.getElementById("modalVerExamenes").style.display = "block";
-        } catch (error) {
-          console.error("Error al cargar exámenes:", error);
-          alert("Error al cargar exámenes.");
-        }
-      } else {
-        console.error("El elemento listaExamenes no existe.");
+        document.getElementById("modalVerExamenes").style.display = "block";
+      } catch (error) {
+        console.error("Error al cargar exámenes:", error);
+        alert("Error al cargar exámenes.");
       }
     }
 
     async function cargarClases() {
       const claseSelect = document.getElementById("claseExamen");
-      if (claseSelect) {
-        claseSelect.innerHTML = '<option value="">Selecciona una clase</option>';
-        try {
-          const clasesSnapshot = await getDocs(collection(db, "clases"));
-          clasesSnapshot.forEach((doc) => {
-            const clase = doc.data();
-            const option = document.createElement("option");
-            option.value = doc.id;
-            option.textContent = clase.nombre;
-            claseSelect.appendChild(option);
-          });
-        } catch (error) {
-          console.error("Error al cargar clases:", error);
-        }
-      } else {
-        console.error("El elemento claseExamen no existe en el DOM.");
+      claseSelect.innerHTML = '<option value="">Selecciona una clase</option>';
+      try {
+        const clasesSnapshot = await getDocs(collection(db, "clases"));
+        clasesSnapshot.forEach((doc) => {
+          const clase = doc.data();
+          const option = document.createElement("option");
+          option.value = doc.id;
+          option.textContent = clase.nombre;
+          claseSelect.appendChild(option);
+        });
+      } catch (error) {
+        console.error("Error al cargar clases:", error);
       }
     }
 
@@ -265,13 +261,8 @@
           document.getElementById("editarIntentos").value = examen.intentos;
         });
 
-        const modalEditarExamen = document.getElementById("modalEditarExamen");
-        if (modalEditarExamen) {
-          modalEditarExamen.dataset.examenId = examenId;
-          modalEditarExamen.style.display = "block";
-        } else {
-          console.error("El elemento modalEditarExamen no existe.");
-        }
+        document.getElementById("modalEditarExamen").dataset.examenId = examenId;
+        document.getElementById("modalEditarExamen").style.display = "block";
       } catch (error) {
         console.error("Error al cargar datos del examen:", error);
       }
@@ -312,7 +303,8 @@
           intentos
         });
         alert("Examen creado con éxito.");
-        window.location.href = `admin.html?examenId=${docRef.id}`;
+        cerrarModal('modalNuevoExamen');
+        cargarExamenes();
       } catch (error) {
         console.error("Error al crear el examen:", error);
         alert("Hubo un error al crear el examen.");
@@ -343,103 +335,115 @@
     };
 
     window.verEstadisticas = async function(examenId) {
-      const graficaCanvas = document.getElementById("graficaEstadisticas");
+      const graficaContainer = document.getElementById("graficaContainer");
+      graficaContainer.innerHTML = ""; // Limpiar el contenedor
+
       try {
-        if (chartInstance) {
-          chartInstance.destroy();
-        }
+          // Obtener el número total de preguntas para el examen
+          const preguntasSnapshot = await getDocs(query(collection(db, "preguntas"), where("examenId", "==", examenId)));
+          const totalPreguntas = preguntasSnapshot.size;
 
-        // Obtener las preguntas del examen
-        const preguntasSnapshot = await getDocs(query(collection(db, "preguntas"), where("examenId", "==", examenId)));
-        const preguntas = [];
-
-        preguntasSnapshot.forEach((doc) => {
-          preguntas.push({ id: doc.id, ...doc.data() });
-        });
-
-        // Obtener las respuestas de los usuarios y contar por pregunta
-        const respuestasSnapshot = await getDocs(query(collection(db, "respuestas"), where("idExamen", "==", examenId)));
-        const conteoRespuestas = {};
-
-        respuestasSnapshot.forEach((doc) => {
-          const respuesta = doc.data();
-          const preguntaId = respuesta.idPregunta; // Asegúrate de tener este campo en la colección 'respuestas'
-
-          if (!conteoRespuestas[preguntaId]) {
-            conteoRespuestas[preguntaId] = { correctas: 0, incorrectas: 0 };
+          if (totalPreguntas === 0) {
+              alert("Este examen no tiene preguntas registradas.");
+              return;
           }
 
-          // Lógica para contar respuestas correctas/incorrectas
-          if (respuesta.correcta) {
-            conteoRespuestas[preguntaId].correctas++;
-          } else {
-            conteoRespuestas[preguntaId].incorrectas++;
+          // Obtener las respuestas dadas por los usuarios
+          const respuestasSnapshot = await getDocs(query(collection(db, "respuestas"), where("idExamen", "==", examenId)));
+
+          if (respuestasSnapshot.empty) {
+              alert("No hay respuestas registradas para este examen.");
+              return;
           }
-        });
 
-        // Preparar los datos para la gráfica
-        const labels = preguntas.map(pregunta => pregunta.pregunta);
-        const dataCorrectas = labels.map(label => conteoRespuestas[label]?.correctas || 0);
-        const dataIncorrectas = labels.map(label => conteoRespuestas[label]?.incorrectas || 0);
+          respuestasSnapshot.forEach((respuestaDoc, index) => {
+              const respuesta = respuestaDoc.data();
+              const numCorrectas = respuesta.numAciertos;
+              const numIncorrectas = totalPreguntas - numCorrectas;
 
-        const data = {
-          labels: labels,
-          datasets: [
-            {
-              label: 'Correctas',
-              data: dataCorrectas,
-              backgroundColor: '#28a745'
-            },
-            {
-              label: 'Incorrectas',
-              data: dataIncorrectas,
-              backgroundColor: '#dc3545'
-            }
-          ]
-        };
+              // Crear el canvas para la gráfica de barras
+              const canvas = document.createElement("canvas");
+              canvas.id = `chart-${index}`;
+              graficaContainer.appendChild(canvas);
 
-        // Crear la gráfica
-        chartInstance = new Chart(graficaCanvas, {
-          type: 'bar',
-          data: data,
-          options: {
-            responsive: true,
-            plugins: {
-              legend: {
-                display: true,
-                labels: {
-                  color: '#ffffff'
-                }
-              }
-            },
-            scales: {
-              x: {
-                ticks: {
-                  color: '#ffffff'
-                },
-                grid: {
-                  color: '#444'
-                }
-              },
-              y: {
-                beginAtZero: true,
-                ticks: {
-                  color: '#ffffff'
-                },
-                grid: {
-                  color: '#444'
-                }
-              }
-            }
-          }
-        });
+              // Configurar los datos de la gráfica
+              const data = {
+                  labels: ['Correctas', 'Incorrectas'],
+                  datasets: [{
+                      label: `Resultado de ${respuesta.nombre}`,
+                      data: [numCorrectas, numIncorrectas],
+                      backgroundColor: ['#28a745', '#dc3545']
+                  }]
+              };
 
-        document.getElementById("modalEstadisticas").style.display = "block";
+              // Crear la gráfica de barras
+              new Chart(canvas, {
+                  type: 'bar', // Cambia a 'pie' o 'doughnut' si prefieres otro tipo de gráfica
+                  data: data,
+                  options: {
+                      responsive: true,
+                      plugins: {
+                          legend: {
+                              display: true,
+                              labels: {
+                                  color: '#ffffff', // Color de las etiquetas de la leyenda
+                                  font: {
+                                      size: 14 // Tamaño de la fuente de la leyenda
+                                  }
+                              }
+                          },
+                          title: {
+                              display: true,
+                              text: `Resultado de ${respuesta.nombre}`,
+                              color: '#ffffff', // Color del título
+                              font: {
+                                  size: 16 // Tamaño de la fuente del título
+                              }
+                          }
+                      },
+                      scales: {
+                          x: {
+                              ticks: {
+                                  color: '#ffffff', // Color de las etiquetas del eje X
+                                  font: {
+                                      size: 14 // Tamaño de la fuente de las etiquetas del eje X
+                                  }
+                              },
+                              grid: {
+                                  color: '#444' // Color de las líneas del grid del eje X
+                              }
+                          },
+                          y: {
+                              beginAtZero: true,
+                              title: {
+                                  display: true,
+                                  text: 'Número de respuestas',
+                                  color: '#ffffff', // Color del título del eje Y
+                                  font: {
+                                      size: 14 // Tamaño de la fuente del título del eje Y
+                                  }
+                              },
+                              ticks: {
+                                  color: '#ffffff', // Color de las etiquetas del eje Y
+                                  font: {
+                                      size: 14 // Tamaño de la fuente de las etiquetas del eje Y
+                                  }
+                              },
+                              grid: {
+                                  color: '#444' // Color de las líneas del grid del eje Y
+                              }
+                          }
+                      }
+                  }
+              });
+          });
+
+          document.getElementById("modalEstadisticas").style.display = "block";
       } catch (error) {
-        console.error("Error al cargar estadísticas:", error);
-        alert("Error al cargar estadísticas.");
+          console.error("Error al cargar estadísticas de preguntas:", error);
+          alert("Error al cargar estadísticas.");
       }
-    };
+  };
 
     window.abrirModalVerExamenes = cargarExamenes;
   </script>
