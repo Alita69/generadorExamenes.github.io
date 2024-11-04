@@ -6,77 +6,123 @@
     <title>Menú de Estudiante</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
     <style>
+        /* Estilos */
         body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #081b29;
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            font-family: 'Rubik', sans-serif;
+            background-color: #1a2b38; /* Azul oscuro */
+            color: #cfd8dc; /* Gris claro */
             margin: 0;
         }
         .container {
-            background-color: rgba(1, 25, 43, 0.9);
-            border: 3px solid #00ffff;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
-            padding: 20px;
-            max-width: 600px;
+            background-color: #22303c; /* Azul muy oscuro */
+            border-radius: 15px;
+            box-shadow: 0 6px 30px rgba(77, 208, 225, 0.5); /* Sombra cian */
+            padding: 30px;
+            max-width: 700px;
             width: 100%;
             text-align: center;
+            margin: auto;
+            overflow-y: auto;
+            max-height: 90vh; /* Para que el contenedor tenga un scroll interno */
         }
-        .btn-primary {
-            background: linear-gradient(45deg, #0ef, #c800ff);
-            border: none;
-        }
-        .btn-secondary {
-            background: linear-gradient(45deg, #f06, #ff8);
-            color: white;
-            border: none;
+        h1 {
+            font-weight: 300;
+            margin-bottom: 20px;
+            color: #4fc3f7; /* Azul claro */
         }
         .class-item {
-            border: 1px solid #00ffff;
-            border-radius: 8px;
-            background-color: #1a2230;
+            background-color: #263238; /* Azul verdoso oscuro */
+            border: 1px solid #4fc3f7; /* Azul claro */
+            border-radius: 10px;
             padding: 15px;
             margin-bottom: 15px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .class-item:hover {
+            background-color: #37474f; /* Cambio de color al pasar el ratón */
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(77, 208, 225, 0.2);
+        }
+        .btn {
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 500;
+            margin-top: 5px;
+            color: #cfd8dc; /* Gris claro */
+            transition: background-color 0.2s;
+        }
+        .btn-primary {
+            background-color: #4fc3f7; /* Azul claro */
+        }
+        .btn-primary:hover {
+            background-color: #0288d1; /* Azul más intenso */
+        }
+        .btn-secondary {
+            background-color: #d32f2f; /* Rojo intenso */
+            color: #cfd8dc;
+        }
+        .btn-secondary:hover {
+            background-color: #b71c1c; /* Rojo más oscuro */
         }
         .btn-success {
-            background-color: #28a745;
-            border: none;
+            background-color: #388e3c; /* Verde */
+            color: #cfd8dc;
         }
         .btn-success:hover {
-            background-color: #218838;
+            background-color: #2e7d32; /* Verde más oscuro */
         }
         .btn-danger {
-            background-color: #dc3545;
-            border: none;
+            background-color: #c62828; /* Rojo */
+            color: #cfd8dc;
+        }
+        .btn-danger:hover {
+            background-color: #b71c1c; /* Rojo más oscuro */
+        }
+        #resumenContainer {
+            background-color: #1a2b38; /* Azul oscuro */
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #4fc3f7; /* Azul claro */
+            max-height: 200px; /* Limitar la altura del resumen */
+            overflow-y: auto; /* Agregar scroll si es necesario */
+        }
+        p, h4 {
+            margin: 10px 0;
+            color: #b0bec5; /* Gris claro */
         }
     </style>
 </head>
 <body>
     <div class="container mt-5">
         <h1 class="text-center">Clases Disponibles</h1>
+        <div id="resumenContainer" class="mt-4 p-3" style="background-color: #16213e; border: 1px solid #00ffff; border-radius: 10px;">
+            <h4>Resumen de tus Exámenes</h4>
+            <p id="resumenEstadisticas">Cargando estadísticas...</p>
+        </div>
         <div id="clasesContainer" class="mt-4"></div>
         <button class="btn btn-secondary w-100 mt-3" onclick="window.location.href='index.html'">Regresar</button>
-        <!-- Botón oculto para ver el porcentaje -->
-        <button id="verPorcentaje" style="display: none; margin-top: 15px;" onclick="mostrarModal()">Ver porcentaje de respuestas</button>
-    </div>
 
-    <!-- Modal -->
-    <div id="miModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5);">
-        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; border-radius: 8px;">
-            <canvas id="grafica" width="200" height="200"></canvas>
-            <button onclick="cerrarModal()">Cerrar</button>
+        <!-- Modal para mostrar la gráfica de resultados -->
+        <div id="modalGrafica" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5);">
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #22303c; padding: 20px; border-radius: 8px;">
+                <canvas id="graficaResultados" width="400" height="400"></canvas>
+                <button class="btn btn-primary mt-3" onclick="cerrarModalGrafica()">Cerrar</button>
+                <button class="btn btn-success mt-3" onclick="imprimirPDF()">Imprimir PDF</button>
+            </div>
         </div>
     </div>
-
+    
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
         import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
         import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+        const { jsPDF } = window.jspdf; // Solución: Asignar jsPDF del objeto global
+        let chartInstance = null; // Variable para almacenar la instancia de la gráfica
 
         const firebaseConfig = {
             apiKey: "AIzaSyCqJU8v-DahljJa8DA-eVrspr_RdzbNP-0",
@@ -94,6 +140,35 @@
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 const uid = user.uid;
+
+                async function cargarResumenEstadisticas() {
+                    const resumenContainer = document.getElementById("resumenEstadisticas");
+                    const respuestasQuery = query(collection(db, "respuestas"), where("uid", "==", uid));
+                    const respuestasSnapshot = await getDocs(respuestasQuery);
+
+                    if (respuestasSnapshot.empty) {
+                        resumenContainer.innerHTML = "No has realizado ningún examen aún.";
+                        return;
+                    }
+
+                    let totalExamenes = 0;
+                    let totalAciertos = 0;
+                    let ultimaFecha = "";
+
+                    respuestasSnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        totalExamenes++;
+                        totalAciertos += data.numAciertos;
+                        ultimaFecha = data.fechaHecho; // Se asume que el último documento es la última fecha registrada
+                    });
+
+                    const promedioAciertos = (totalAciertos / totalExamenes).toFixed(2);
+                    resumenContainer.innerHTML = `
+                        <p>Total de exámenes realizados: ${totalExamenes}</p>
+                        <p>Promedio de respuestas correctas: ${promedioAciertos}</p>
+                        <p>Último examen realizado el: ${ultimaFecha}</p>
+                    `;
+                }
 
                 async function cargarClases() {
                     const clasesContainer = document.getElementById("clasesContainer");
@@ -126,79 +201,125 @@
                         return;
                     }
 
+                    const examenesData = [];
+
                     for (const doc of examenesSnapshot.docs) {
                         const examen = doc.data();
-                        const respuestaQuery = query(collection(db, "respuestas"), where("idExamen", "==", doc.id), where("uid", "==", uid));
-                        const respuestaSnapshot = await getDocs(respuestaQuery);
-
-                        let intentosRestantes = examen.intentos;
-                        if (!respuestaSnapshot.empty) {
-                            const respuesta = respuestaSnapshot.docs[0].data();
-                            intentosRestantes = examen.intentos - respuesta.intento;
-                        }
+                        examen.id = doc.id; // Agregar el ID del documento para referencia posterior
+                        examenesData.push(examen);
 
                         const examenItem = document.createElement("div");
+                        examenItem.id = `examen-${doc.id}`;
                         examenItem.innerHTML = `
                             <p>${examen.nombre} - Disponible hasta: ${examen.fechaCierre}</p>
-                            <button class="btn ${intentosRestantes > 0 ? 'btn-success' : 'btn-danger'}"
-                                    onclick="${intentosRestantes > 0 ? `contestarExamen('${doc.id}', '${uid}')` : 'alert(\'Se ha superado el número de intentos para este examen.\')'}">
-                                ${intentosRestantes > 0 ? `Contestar (Intentos restantes: ${intentosRestantes})` : 'Intentos agotados'}
-                            </button>
+                            <button class="btn btn-warning" id="boton-${doc.id}">Cargando...</button>
                         `;
                         examenesContainer.appendChild(examenItem);
                     }
+
+                    setInterval(async () => {
+                        const fechaActual = new Date();
+
+                        for (const examen of examenesData) {
+                            const fechaApertura = new Date(examen.fechaApertura);
+                            const fechaCierre = new Date(examen.fechaCierre);
+                            const boton = document.getElementById(`boton-${examen.id}`);
+
+                            const respuestaQuery = query(collection(db, "respuestas"), where("idExamen", "==", examen.id), where("uid", "==", uid));
+                            const respuestaSnapshot = await getDocs(respuestaQuery);
+
+                            let intentosRestantes = examen.intentos;
+                            if (!respuestaSnapshot.empty) {
+                                const respuesta = respuestaSnapshot.docs[0].data();
+                                intentosRestantes = examen.intentos - respuesta.intento;
+                            }
+
+                            if (fechaActual < fechaApertura) {
+                                boton.className = "btn btn-danger";
+                                boton.innerText = "Este examen aún no se ha abierto";
+                                boton.disabled = true;
+                            } else if (fechaActual > fechaCierre) {
+                                boton.className = "btn btn-danger";
+                                boton.innerText = "Este examen ya se ha cerrado";
+                                boton.disabled = true;
+                            } else if (intentosRestantes <= 0) {
+                                boton.className = "btn btn-danger";
+                                boton.innerText = "Intentos agotados";
+                                boton.disabled = false;
+                                boton.onclick = () => mostrarResultados(examen.id, uid);
+                            } else {
+                                boton.className = "btn btn-success";
+                                boton.innerText = `Contestar (Intentos restantes: ${intentosRestantes})`;
+                                boton.disabled = false;
+                                boton.onclick = () => contestarExamen(examen.id, uid);
+                            }
+                        }
+                    }, 10000); // Verificar cada 10 segundos
                 };
 
                 window.contestarExamen = function(examenId, uid) {
                     window.location.href = `estudiante.html?examenId=${examenId}&uid=${uid}`;
                 };
 
+                window.mostrarResultados = async function(examenId, uid) {
+                    const respuestasQuery = query(collection(db, "respuestas"), where("idExamen", "==", examenId), where("uid", "==", uid));
+                    const respuestasSnapshot = await getDocs(respuestasQuery);
+
+                    if (respuestasSnapshot.empty) {
+                        alert("No se encontraron respuestas para mostrar.");
+                        return;
+                    }
+
+                    let contenidoPDF = "Resumen de tus respuestas:\n\n";
+                    let respuestasCorrectas = 0;
+                    let respuestasIncorrectas = 0;
+
+                    respuestasSnapshot.forEach((doc) => {
+                        const respuesta = doc.data();
+                        contenidoPDF += `Pregunta: ${respuesta.pregunta}\nRespuesta: ${respuesta.respuesta}\nCorrecta: ${respuesta.correcta ? 'Sí' : 'No'}\n\n`;
+
+                        if (respuesta.correcta) {
+                            respuestasCorrectas++;
+                        } else {
+                            respuestasIncorrectas++;
+                        }
+                    });
+
+                    if (chartInstance) {
+                        chartInstance.destroy(); // Destruir la gráfica existente si ya hay una
+                    }
+
+                    const ctx = document.getElementById("graficaResultados").getContext("2d");
+                    chartInstance = new Chart(ctx, {
+                        type: "pie",
+                        data: {
+                            labels: ["Correctas", "Incorrectas"],
+                            datasets: [{
+                                data: [respuestasCorrectas, respuestasIncorrectas],
+                                backgroundColor: ["#388e3c", "#c62828"]
+                            }]
+                        }
+                    });
+
+                    document.getElementById("modalGrafica").style.display = "block";
+
+                    window.imprimirPDF = function() {
+                        const doc = new jsPDF();
+                        doc.text(contenidoPDF, 10, 10);
+                        doc.save("resultado-examen.pdf");
+                    };
+                };
+
+                window.cerrarModalGrafica = function() {
+                    document.getElementById("modalGrafica").style.display = "none";
+                };
+
+                await cargarResumenEstadisticas();
                 cargarClases();
             } else {
-                window.location.href = 'index.html';
+                window.location.href = "index.html";
             }
         });
-
-        // Variables y funciones para manejar los intentos y mostrar el botón al agotarse
-        let intentos = 3;
-        let respuestasCorrectas = 0;
-        let respuestasIncorrectas = 0;
-
-        function actualizarIntentos() {
-            intentos--;
-            // Verificar si los intentos se han agotado
-            if (intentos <= 0) {
-                mostrarBotonVerPorcentaje();
-            }
-        }
-
-        function mostrarBotonVerPorcentaje() {
-            document.getElementById('verPorcentaje').style.display = 'block';
-        }
-
-        function mostrarModal() {
-            const totalRespuestas = respuestasCorrectas + respuestasIncorrectas;
-            const porcentajeCorrectas = (respuestasCorrectas / totalRespuestas) * 100;
-            const porcentajeIncorrectas = (respuestasIncorrectas / totalRespuestas) * 100;
-
-            document.getElementById('miModal').style.display = 'block';
-
-            const ctx = document.getElementById('grafica').getContext('2d');
-            new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: ['Correctas', 'Incorrectas'],
-                    datasets: [{
-                        data: [porcentajeCorrectas, porcentajeIncorrectas],
-                        backgroundColor: ['#4CAF50', '#F44336']
-                    }]
-                }
-            });
-        }
-
-        function cerrarModal() {
-            document.getElementById('miModal').style.display = 'none';
-        }
     </script>
 </body>
 </html>

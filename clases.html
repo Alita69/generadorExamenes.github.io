@@ -4,33 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clases Disponibles</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
+
     <style>
-        /* Estilos generales */
-        * { 
+        /* Estilo general */
+        * {
             margin: 0;
             padding: 0;
-            font-family: 'Rubik', segoe ui;
-            color: gray;
+            font-family: 'Rubik', sans-serif;
+            box-sizing: border-box;
         }
 
         body {
             width: 100vw;
             height: 100vh;
-            background: #081b29;
+            background-color: #1a2b38; /* Azul oscuro */
             display: flex;
             justify-content: center;
             align-items: center;
-        }
-
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 8, 41, 0.7);
-            z-index: 1;
+            margin: 0;
         }
 
         .container {
@@ -38,19 +30,19 @@
             z-index: 2;
             display: grid;
             gap: 20px;
-            width: 500px;
-            padding: 40px;
-            background-color: rgba(1, 25, 43, 0.9);
-            border: 3px solid #00ffff;
-            border-radius: 10px;
-            box-shadow: 0 0 30px 0 #00a6bc;
+            width: 600px;
+            padding: 30px;
+            background-color: #22303c; /* Azul muy oscuro */
+            border-radius: 15px;
+            border: 1px solid #4fc3f7; /* Azul claro */
+            box-shadow: 0 6px 30px rgba(77, 208, 225, 0.5); /* Sombra cian */
             text-align: center;
         }
 
         .title {
-            font-size: 24px;
+            font-size: 28px;
             font-weight: bold;
-            color: white;
+            color: #4fc3f7; /* Azul claro */
             margin-bottom: 20px;
         }
 
@@ -63,8 +55,8 @@
         .menu-button {
             padding: 15px;
             font-size: 18px;
-            color: white;
-            background: linear-gradient(45deg, #0ef, #c800ff);
+            background-color: #4fc3f7; /* Azul claro */
+            color: #1a2b38; /* Azul oscuro */
             border: none;
             border-radius: 10px;
             cursor: pointer;
@@ -72,23 +64,28 @@
         }
 
         .menu-button:hover {
+            background-color: #0288d1; /* Azul más intenso */
             box-shadow: 0 0 10px 0 #00a6bc;
             transform: scale(1.05);
         }
 
         .back-button {
-            background: linear-gradient(45deg, #f06, #ff8);
+            background-color: #d32f2f; /* Rojo intenso */
+            color: #cfd8dc; /* Gris claro */
+        }
+
+        .back-button:hover {
+            background-color: #b71c1c; /* Rojo más oscuro */
         }
 
         .clase-item {
             padding: 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid #00ffff;
-            border-radius: 8px;
+            background-color: #263238; /* Azul verdoso oscuro */
+            border: 1px solid #4fc3f7; /* Azul claro */
+            border-radius: 10px;
             margin-bottom: 10px;
-            color: white;
+            color: #cfd8dc; /* Gris claro */
             text-align: left;
-            position: relative;
         }
 
         .clase-buttons {
@@ -97,7 +94,7 @@
             margin-top: 10px;
         }
 
-        /* Modal Styling */
+        /* Modal Styles */
         .modal {
             display: none;
             position: fixed;
@@ -112,56 +109,53 @@
         }
 
         .modal-content {
-            background-color: #081b29;
+            background-color: #1a2b38; /* Azul oscuro */
             width: 400px;
-            padding: 30px 20px;
-            border-radius: 10px;
-            border: 3px solid #00ffff;
-            box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.2);
-            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid #4fc3f7; /* Azul claro */
+            box-shadow: 0px 4px 16px rgba(77, 208, 225, 0.5);
+            color: #cfd8dc; /* Gris claro */
             text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }
 
         .modal-content h2 {
             margin-bottom: 20px;
+            color: #4fc3f7; /* Azul claro */
         }
 
         .modal-content input {
-            width: 90%;
+            width: 100%;
             padding: 12px;
             margin-bottom: 15px;
             font-size: 16px;
-            color: #0ef;
-            background-color: #1b2b3b;
-            border: 2px solid #00ffff;
-            border-radius: 5px;
+            background-color: #263238; /* Azul verdoso oscuro */
+            border: 1px solid #4fc3f7; /* Azul claro */
+            color: #cfd8dc; /* Gris claro */
+            border-radius: 8px;
             outline: none;
-            text-align: center;
         }
 
         .modal-content button {
-            margin-top: 20px;
             padding: 10px;
-            width: 90%;
+            width: 100%;
             font-size: 18px;
-            background: linear-gradient(45deg, #0ef, #c800ff);
+            background-color: #4fc3f7; /* Azul claro */
             border: none;
-            border-radius: 5px;
+            border-radius: 10px;
+            color: #1a2b38; /* Azul oscuro */
             cursor: pointer;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-            color: white;
         }
 
         .modal-content button:hover {
+            background-color: #0288d1; /* Azul más intenso */
             box-shadow: 0 0 10px 0 #00a6bc;
             transform: scale(1.05);
         }
 
         .close {
-            color: #aaa;
+            color: #cfd8dc; /* Gris claro */
             float: right;
             font-size: 28px;
             font-weight: bold;
@@ -172,7 +166,7 @@
         }
 
         .close:hover {
-            color: white;
+            color: #4fc3f7; /* Azul claro */
         }
     </style>
 </head>
