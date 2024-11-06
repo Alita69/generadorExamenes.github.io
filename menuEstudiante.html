@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,95 +12,136 @@
         /* Estilos */
         body {
             font-family: 'Rubik', sans-serif;
-            background-color: #1a2b38; /* Azul oscuro */
-            color: #cfd8dc; /* Gris claro */
+            background-color: #1a2b38;
+            /* Azul oscuro */
+            color: #cfd8dc;
+            /* Gris claro */
             margin: 0;
         }
+
         .container {
-            background-color: #22303c; /* Azul muy oscuro */
+            background-color: #22303c;
+            /* Azul muy oscuro */
             border-radius: 15px;
-            box-shadow: 0 6px 30px rgba(77, 208, 225, 0.5); /* Sombra cian */
+            box-shadow: 0 6px 30px rgba(77, 208, 225, 0.5);
+            /* Sombra cian */
             padding: 30px;
             max-width: 700px;
             width: 100%;
             text-align: center;
             margin: auto;
             overflow-y: auto;
-            max-height: 90vh; /* Para que el contenedor tenga un scroll interno */
+            max-height: 90vh;
+            /* Para que el contenedor tenga un scroll interno */
         }
+
         h1 {
             font-weight: 300;
             margin-bottom: 20px;
-            color: #4fc3f7; /* Azul claro */
+            color: #4fc3f7;
+            /* Azul claro */
         }
+
         .class-item {
-            background-color: #263238; /* Azul verdoso oscuro */
-            border: 1px solid #4fc3f7; /* Azul claro */
+            background-color: #263238;
+            /* Azul verdoso oscuro */
+            border: 1px solid #4fc3f7;
+            /* Azul claro */
             border-radius: 10px;
             padding: 15px;
             margin-bottom: 15px;
             transition: transform 0.2s, box-shadow 0.2s;
         }
+
         .class-item:hover {
-            background-color: #37474f; /* Cambio de color al pasar el ratón */
+            background-color: #37474f;
+            /* Cambio de color al pasar el ratón */
             transform: translateY(-3px);
             box-shadow: 0 4px 15px rgba(77, 208, 225, 0.2);
         }
+
         .btn {
             border: none;
             border-radius: 8px;
             padding: 10px 20px;
             font-weight: 500;
             margin-top: 5px;
-            color: #cfd8dc; /* Gris claro */
+            color: #cfd8dc;
+            /* Gris claro */
             transition: background-color 0.2s;
         }
+
         .btn-primary {
-            background-color: #4fc3f7; /* Azul claro */
+            background-color: #4fc3f7;
+            /* Azul claro */
         }
+
         .btn-primary:hover {
-            background-color: #0288d1; /* Azul más intenso */
+            background-color: #0288d1;
+            /* Azul más intenso */
         }
+
         .btn-secondary {
-            background-color: #d32f2f; /* Rojo intenso */
+            background-color: #d32f2f;
+            /* Rojo intenso */
             color: #cfd8dc;
         }
+
         .btn-secondary:hover {
-            background-color: #b71c1c; /* Rojo más oscuro */
+            background-color: #b71c1c;
+            /* Rojo más oscuro */
         }
+
         .btn-success {
-            background-color: #388e3c; /* Verde */
+            background-color: #388e3c;
+            /* Verde */
             color: #cfd8dc;
         }
+
         .btn-success:hover {
-            background-color: #2e7d32; /* Verde más oscuro */
+            background-color: #2e7d32;
+            /* Verde más oscuro */
         }
+
         .btn-danger {
-            background-color: #c62828; /* Rojo */
+            background-color: #c62828;
+            /* Rojo */
             color: #cfd8dc;
         }
+
         .btn-danger:hover {
-            background-color: #b71c1c; /* Rojo más oscuro */
+            background-color: #b71c1c;
+            /* Rojo más oscuro */
         }
+
         #resumenContainer {
-            background-color: #1a2b38; /* Azul oscuro */
+            background-color: #1a2b38;
+            /* Azul oscuro */
             border-radius: 10px;
             padding: 15px;
             margin-bottom: 20px;
-            border: 1px solid #4fc3f7; /* Azul claro */
-            max-height: 200px; /* Limitar la altura del resumen */
-            overflow-y: auto; /* Agregar scroll si es necesario */
+            border: 1px solid #4fc3f7;
+            /* Azul claro */
+            max-height: 200px;
+            /* Limitar la altura del resumen */
+            overflow-y: auto;
+            /* Agregar scroll si es necesario */
         }
-        p, h4 {
+
+        p,
+        h4 {
             margin: 10px 0;
-            color: #b0bec5; /* Gris claro */
+            color: #b0bec5;
+            /* Gris claro */
         }
     </style>
 </head>
+
 <body>
     <div class="container mt-5">
         <h1 class="text-center">Clases Disponibles</h1>
-        <div id="resumenContainer" class="mt-4 p-3" style="background-color: #16213e; border: 1px solid #00ffff; border-radius: 10px;">
+        <div id="resumenContainer" class="mt-4 p-3"
+            style="background-color: #16213e; border: 1px solid #00ffff; border-radius: 10px;">
             <h4>Resumen de tus Exámenes</h4>
             <p id="resumenEstadisticas">Cargando estadísticas...</p>
         </div>
@@ -107,15 +149,17 @@
         <button class="btn btn-secondary w-100 mt-3" onclick="window.location.href='index.html'">Regresar</button>
 
         <!-- Modal para mostrar la gráfica de resultados -->
-        <div id="modalGrafica" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5);">
-            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #22303c; padding: 20px; border-radius: 8px;">
+        <div id="modalGrafica"
+            style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5);">
+            <div
+                style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #22303c; padding: 20px; border-radius: 8px;">
                 <canvas id="graficaResultados" width="400" height="400"></canvas>
                 <button class="btn btn-primary mt-3" onclick="cerrarModalGrafica()">Cerrar</button>
-                <button class="btn btn-success mt-3" onclick="imprimirPDF()">Imprimir PDF</button>
+                <button class="btn btn-success mt-3" onclick="imprimirConstanciaPDF()">Imprimir Constancia</button>
             </div>
         </div>
     </div>
-    
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
         import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
@@ -188,7 +232,7 @@
                     });
                 }
 
-                window.verExamenes = async function(claseId) {
+                window.verExamenes = async function (claseId) {
                     const examenesContainer = document.getElementById(`examenes-${claseId}`);
                     examenesContainer.style.display = examenesContainer.style.display === 'block' ? 'none' : 'block';
                     examenesContainer.innerHTML = "";
@@ -257,11 +301,11 @@
                     }, 10000); // Verificar cada 10 segundos
                 };
 
-                window.contestarExamen = function(examenId, uid) {
+                window.contestarExamen = function (examenId, uid) {
                     window.location.href = `estudiante.html?examenId=${examenId}&uid=${uid}`;
                 };
 
-                window.mostrarResultados = async function(examenId, uid) {
+                window.mostrarResultados = async function (examenId, uid) {
                     const respuestasQuery = query(collection(db, "respuestas"), where("idExamen", "==", examenId), where("uid", "==", uid));
                     const respuestasSnapshot = await getDocs(respuestasQuery);
 
@@ -303,14 +347,62 @@
 
                     document.getElementById("modalGrafica").style.display = "block";
 
-                    window.imprimirPDF = function() {
+                    window.imprimirConstanciaPDF = function (nombreExamen, nombreEstudiante, calificacion, fechaEmision) {
                         const doc = new jsPDF();
-                        doc.text(contenidoPDF, 10, 10);
-                        doc.save("resultado-examen.pdf");
+
+                        // Cargar imagen logo
+                        const imgLogo = new Image();
+                        imgLogo.src = 'logo.jpg';
+                        imgLogo.onload = function () {
+                            // Centrar logo en la parte superior
+                            const imgWidth = 40; // Ajusta el tamaño de la imagen
+                            const imgHeight = 40;
+                            const pageWidth = doc.internal.pageSize.getWidth();
+                            const xOffset = (pageWidth - imgWidth) / 2;
+                            doc.addImage(imgLogo, 'PNG', xOffset, 10, imgWidth, imgHeight);
+
+                            // Título
+                            doc.setFontSize(18);
+                            doc.text("Constancia de Acreditación del Examen", pageWidth / 2, 60, { align: "center" });
+
+                            // Nombre del examen
+                            doc.setFontSize(14);
+                            doc.text(`Examen: ${nombreExamen}`, pageWidth / 2, 80, { align: "center" });
+
+                            // Otorgado a
+                            doc.text("Otorgado a:", pageWidth / 2, 100, { align: "center" });
+
+                            // Nombre del estudiante
+                            doc.setFontSize(16);
+                            doc.text(nombreEstudiante, pageWidth / 2, 110, { align: "center" });
+
+                            // Línea separadora
+                            doc.setDrawColor(0, 122, 204); // Azul
+                            doc.line(10, 120, pageWidth - 10, 120);
+
+                            // Calificación obtenida
+                            doc.setFontSize(14);
+                            doc.text("Calificación obtenida:", pageWidth / 2, 130, { align: "center" });
+
+                            // Calificación
+                            doc.setFontSize(16);
+                            doc.text(calificacion, pageWidth / 2, 140, { align: "center" });
+
+                            // Línea separadora
+                            doc.line(10, 150, pageWidth - 10, 150);
+
+                            // Fecha de emisión
+                            doc.setFontSize(12);
+                            doc.text(`Fecha de emisión: ${fechaEmision}`, pageWidth / 2, 160, { align: "center" });
+
+                            // Guardar PDF
+                            doc.save(`Constancia_${nombreExamen}.pdf`);
+                        };
                     };
+
                 };
 
-                window.cerrarModalGrafica = function() {
+                window.cerrarModalGrafica = function () {
                     document.getElementById("modalGrafica").style.display = "none";
                 };
 
@@ -322,4 +414,5 @@
         });
     </script>
 </body>
+
 </html>

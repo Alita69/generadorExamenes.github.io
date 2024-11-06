@@ -68,18 +68,19 @@
 
         table {
             background-color: #263238; /* Azul verdoso oscuro */
-            color: #cfd8dc; /* Gris claro */
+            color: #ffffff; /* Blanco */
             border-radius: 8px;
             overflow: hidden;
         }
 
         th {
             background-color: #4fc3f7; /* Azul claro */
-            color: #1a2b38; /* Azul oscuro */
+            color: #ffffff; /* Azul oscuro */
         }
 
         td {
             background-color: #37474f; /* Cambio de color */
+            color: #ffffff !important; /* Blanco */
         }
     </style>
 </head>
@@ -117,8 +118,10 @@
             <button type="button" class="btn btn-secondary w-100 mb-3" onclick="agregarRespuesta()">Agregar Otra Respuesta</button>
 
             <div class="mb-3">
-                <label for="correcta" class="form-label">Solución (A, B, C, etc.):</label>
-                <input type="text" class="form-control" id="correcta" required maxlength="1" pattern="[A-Z]">
+                <label for="correcta" class="form-label">Solución:</label>
+                <select class="form-control" id="correcta" required>
+                    <option value="">Seleccione la respuesta correcta</option>
+                </select>
             </div>
 
             <button type="submit" class="btn btn-primary w-100">Guardar Pregunta</button>
@@ -169,31 +172,48 @@
         }
 
         // Cargar preguntas específicas del examen actual
-        async function cargarPreguntas() {
+        window.cargarPreguntas = async function() {
             const tablaPreguntas = document.getElementById("tablaPreguntas");
             tablaPreguntas.innerHTML = ""; // Limpiar la tabla
 
             const q = query(collection(db, "preguntas"), where("examenId", "==", examenId));
             const querySnapshot = await getDocs(q);
 
-            querySnapshot.forEach((doc, index) => {
+            let index = 1;
+            querySnapshot.forEach((doc) => {
                 const preguntaData = doc.data();
-                mostrarPreguntaEnTabla(index + 1, preguntaData.pregunta, preguntaData.respuestas, preguntaData.correcta);
+                mostrarPreguntaEnTabla(index++, preguntaData.pregunta, preguntaData.respuestas, preguntaData.correcta);
             });
-        }
+        };
 
-        // Función para agregar campo de respuesta adicional
-        function agregarRespuesta() {
+        // Función para agregar campo de respuesta adicional y actualizar opciones
+        window.agregarRespuesta = function() {
             const respuestasContainer = document.getElementById("respuestasContainer");
-            const respuestaCount = respuestasContainer.children.length + 1;
+            const respuestaCount = respuestasContainer.querySelectorAll('.respuesta').length;
             const newRespuesta = document.createElement("div");
             newRespuesta.classList.add("mb-3");
             newRespuesta.innerHTML = `
-                <label class="form-label">Respuesta ${String.fromCharCode(64 + respuestaCount)}:</label>
+                <label class="form-label">Respuesta ${String.fromCharCode(65 + respuestaCount)}:</label>
                 <input type="text" class="form-control respuesta" required>
             `;
             respuestasContainer.appendChild(newRespuesta);
-        }
+            actualizarOpcionesCorrectas();
+        };
+
+        // Actualizar opciones de respuestas correctas en el select
+        window.actualizarOpcionesCorrectas = function() {
+            const selectCorrecta = document.getElementById("correcta");
+            selectCorrecta.innerHTML = '<option value="">Seleccione la respuesta correcta</option>'; // Limpiar opciones
+
+            const respuestas = document.querySelectorAll(".respuesta");
+            respuestas.forEach((input, index) => {
+                const letra = String.fromCharCode(65 + index); // A, B, C, etc.
+                const option = document.createElement("option");
+                option.value = letra;
+                option.textContent = letra;
+                selectCorrecta.appendChild(option);
+            });
+        };
 
         // Guardar cada pregunta en Firebase con el ID del examen actual
         document.getElementById("questionForm").addEventListener("submit", async function(event) {
@@ -201,6 +221,12 @@
             const pregunta = document.getElementById("pregunta").value;
             const correcta = document.getElementById("correcta").value.toUpperCase();
             const respuestas = Array.from(document.querySelectorAll(".respuesta")).map(input => input.value);
+
+            // Verificar que la respuesta correcta seleccionada sea válida
+            if (!respuestas[correcta.charCodeAt(0) - 65]) {
+                alert("La respuesta correcta seleccionada no coincide con ninguna opción disponible.");
+                return;
+            }
 
             const preguntaData = {
                 examenId, // Relaciona la pregunta con el examen actual
@@ -213,34 +239,36 @@
             alert("Pregunta guardada con éxito.");
 
             // Mostrar en la tabla y limpiar el formulario
-            mostrarPreguntaEnTabla(document.getElementById("tablaPreguntas").rows.length + 1, pregunta, respuestas, correcta);
+            mostrarPreguntaEnTabla(document.getElementById("tablaPreguntas").rows.length, pregunta, respuestas, correcta);
             document.getElementById("questionForm").reset();
+            actualizarOpcionesCorrectas(); // Actualizar las opciones después de limpiar
         });
 
         // Función para mostrar preguntas en la tabla
-        function mostrarPreguntaEnTabla(index, pregunta, respuestas, correcta) {
+        window.mostrarPreguntaEnTabla = function(index, pregunta, respuestas, correcta) {
             const tabla = document.getElementById("tablaPreguntas");
             const nuevaFila = tabla.insertRow();
             nuevaFila.insertCell(0).innerText = index;
             nuevaFila.insertCell(1).innerText = pregunta;
             nuevaFila.insertCell(2).innerText = respuestas.join(", ");
             nuevaFila.insertCell(3).innerText = correcta;
-        }
+        };
 
         // Función para redirigir a preliminar.html con el examenId actual
-        function visualizarExamen() {
+        window.visualizarExamen = function() {
             if (examenId) {
                 window.location.href = `preliminar.html?examenId=${examenId}`;
             } else {
                 console.error("examenId no está definido");
             }
-        }
+        };
 
         // Asigna el evento al botón de visualizar
         document.getElementById("btnVisualizar").addEventListener("click", visualizarExamen);
 
         // Cargar preguntas al iniciar
         cargarPreguntas();
+        actualizarOpcionesCorrectas();
     </script>
 </body>
 </html>
